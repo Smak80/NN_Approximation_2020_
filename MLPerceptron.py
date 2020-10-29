@@ -78,3 +78,39 @@ class MLP:
                 )
                 #Обратный проход по сети
                 l_err[self.__layers-2] = out - l[self.__layers-1]
+                #Накопление общей ошибки сети на данной эпохе
+                err_n += 0.5*(out - l[self.__layers-1])**2
+                #Нахождение \delta_k
+                l_delta[self.__layers - 2] = \
+                    np.array([l_err[self.__layers-2][i]*(
+                        self.linActDer(l[self.__layers - 1])
+                    )])
+                #Нахождение \delta_j
+                for j in range(self.__layers-2, 0, -1):
+                    l_err[j-1] = np.dot(l_delta[j], self.__w[j].T)
+                    l_delta[j-1] = l_err[j-1]*self.nonLinActDer(l[j])
+                #Определение изменения весовых коэффициентов \Delta w
+                deltaW = [self.__eta * np.dot(l_delta[j].T, l[j])
+                          for j in range(self.__layers-1)]
+                for j in range(0, self.__layers -1):
+                    self.__w[j] += deltaW[j].T
+            #Вычисление общей ошибки сети для данной эпохи
+            err_n /= len(inp)
+            print("Epoche", k, "Error=", err_n)
+
+
+    #Вычисление выходов по входом обученной сетью
+    def calc(self, inps: list):
+        outs = np.array([])
+        #Для каждого входного значения
+        for i in range(len(inps)):
+            inp = np.array([np.insert(inps[i], 0, 1)])
+            #Прямой проход по сети (все слои, кроме последнего)
+            for lr in range(self.__layers - 2):
+                inp = self.nonLinAct(np.dot(inp, self.__w[lr]))
+            # Получение результата на последнем слое
+            # и добавлени его в массив выходов
+            outs = np.append(outs,
+                             self.linAct(np.dot(inp, self.__w[self.__layers-2]))
+                            )
+        return outs
