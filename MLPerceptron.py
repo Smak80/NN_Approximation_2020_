@@ -79,7 +79,7 @@ class MLP:
                 #Обратный проход по сети
                 l_err[self.__layers-2] = out - l[self.__layers-1]
                 #Накопление общей ошибки сети на данной эпохе
-                err_n += 0.5*(out - l[self.__layers-1])**2
+                err_n += 0.5*(out[i] - l[self.__layers-1])**2
                 #Нахождение \delta_k
                 l_delta[self.__layers - 2] = \
                     np.array([l_err[self.__layers-2][i]*(

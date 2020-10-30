@@ -8,14 +8,14 @@ def plot2d():
     tro = ld.getTrainOut()
     tsi = ld.getTestInp()
     tso = ld.getTestOut()
-    mlp = MLP(tri, tro)
-    mlp.learn()
+    mlp = MLP(tri, tro, (50, 25))
+    mlp.learn(2500, 0.005)
     plt.plot(tri, tro, "r+")
     out = mlp.calc(tri)
     plt.plot(tri, out, "b-")
     out = mlp.calc(tsi)
-    plt.plot(tsi, tso, "go")
-    plt.plot(tsi, out, "g-")
+    plt.plot(tsi, tso, "yo")
+    plt.plot(tsi, out, "go")
     plt.show()
 
 
