@@ -1,6 +1,8 @@
+from matplotlib import pyplot as plt
+
 import data_loader as dl
 from MLPerceptron import MLP
-from matplotlib import pyplot as plt
+
 
 def plot2d():
     ld = dl.loader()
@@ -8,8 +10,8 @@ def plot2d():
     tro = ld.getTrainOut()
     tsi = ld.getTestInp()
     tso = ld.getTestOut()
-    mlp = MLP(tri, tro, (50, 25))
-    mlp.learn(2500, 0.005)
+    mlp = MLP(tri, tro, (5, 10))
+    mlp.learn(2000, epsilon=0.002)
     plt.plot(tri, tro, "r+")
     out = mlp.calc(tri)
     plt.plot(tri, out, "b-")

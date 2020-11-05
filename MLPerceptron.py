@@ -43,19 +43,21 @@ class MLP:
 
 
     def learn(self,
-              epoches = 1000,
-              epsilon = 0.002):
-        #Слои
+              epoches=1000,
+              epsilon=0.002):
+        # Индуцированное локальное поле
+        v = np.array([None for i in range(self.__layers)])
+        # Слои (выходы из слоёв)
         l = np.array([None for i in range(self.__layers)])
-        #Ошибки
+        # Ошибки
         l_err = np.array([None for i in range(1, self.__layers)])
-        #deltas
+        # deltas
         l_delta = np.array([None for i in range(1, self.__layers)])
 
-        #Переобозначение входов и выходов для простоты записи
+        # Переобозначение входов и выходов для простоты записи
         inp = self.__inp
         out = self.__out
-        #Счетчик эпох
+        # Счетчик эпох
         k = 0
         #Полная ошибка сети
         err_n = epsilon+1
@@ -65,30 +67,31 @@ class MLP:
             k += 1
             #Проход по обучающей выборке
             for i in range(len(inp)):
-                l[0] = np.array([np.insert(inp[i], 0, 1)]) #Попробовать вынести за цикл while
-                #Прямой проход по сети
-                for j in range(1, self.__layers-1):
-                    #проход по скрытым слоям
-                    l[j] = self.nonLinAct(
-                        np.dot(l[j-1], self.__w[j-1])
-                    )
-                #вычисление значения на выходном слое
-                l[self.__layers-1] = self.linAct(
-                    np.dot(l[self.__layers-2], self.__w[self.__layers-2])
+                l[0] = np.array([np.insert(inp[i], 0, 1)])  # Попробовать вынести за цикл while
+                # Прямой проход по сети
+                for j in range(1, self.__layers - 1):
+                    v[j] = np.dot(l[j - 1], self.__w[j - 1])
+                    # проход по скрытым слоям
+                    l[j] = self.nonLinAct(v[j])
+                # вычисление индуцированного локального поля на выходном слое
+                v[self.__layers - 1] = np.dot(l[self.__layers - 2], self.__w[self.__layers - 2])
+                # вычисление значения на выходном слое
+                l[self.__layers - 1] = self.linAct(
+                    v[self.__layers - 1]
                 )
-                #Обратный проход по сети
-                l_err[self.__layers-2] = out - l[self.__layers-1]
-                #Накопление общей ошибки сети на данной эпохе
-                err_n += 0.5*(out[i] - l[self.__layers-1])**2
-                #Нахождение \delta_k
+                # Обратный проход по сети
+                l_err[self.__layers - 2] = out[i] - l[self.__layers - 1]
+                # Накопление общей ошибки сети на данной эпохе
+                err_n += 0.5 * (out[i] - l[self.__layers - 1]) ** 2
+                # Нахождение \delta_k
                 l_delta[self.__layers - 2] = \
-                    np.array([l_err[self.__layers-2][i]*(
-                        self.linActDer(l[self.__layers - 1])
+                    np.array([l_err[self.__layers - 2][0] * (
+                        self.linActDer(v[self.__layers - 1])
                     )])
                 #Нахождение \delta_j
                 for j in range(self.__layers-2, 0, -1):
-                    l_err[j-1] = np.dot(l_delta[j], self.__w[j].T)
-                    l_delta[j-1] = l_err[j-1]*self.nonLinActDer(l[j])
+                    l_err[j - 1] = np.dot(l_delta[j], self.__w[j].T)
+                    l_delta[j - 1] = l_err[j - 1] * self.nonLinActDer(v[j])
                 #Определение изменения весовых коэффициентов \Delta w
                 deltaW = [self.__eta * np.dot(l_delta[j].T, l[j])
                           for j in range(self.__layers-1)]
